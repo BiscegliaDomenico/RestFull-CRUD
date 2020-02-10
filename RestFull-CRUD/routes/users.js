@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const sql = require('mssql')
+const sql = require('mssql');
+var createError = require('http-errors');
 const config = {
   user: '4DD_07',  //Vostro user name
   password: 'xxx123##', //Vostra password
@@ -47,6 +48,23 @@ router.get('/:unit', function(req, res, next) {
     });
     
   });
+});
+router.post('/', function (req, res, next) {
+  console.log(req.body);
+  // Add a new Unit  
+  let unit = req.body;
+  if (!unit) {
+    next(createError(400 , "Please provide a correct unit"));
+  }
+  sql.connect(config, err => {
+    let sqlInsert = `INSERT INTO dbo.[cr-unit-attributes] (Unit,Cost,Hit_Speed) 
+                     VALUES ('${unit.Unit}','${unit.Cost}','${unit.Hit_Speed}')`;
+    let sqlRequest = new sql.Request();
+    sqlRequest.query(sqlInsert, (error, results) => {
+      if (error) throw error;
+      return res.send({ error: false, data: results, message: 'New user has been created successfully.' });
+    });
+  })
 });
 
 module.exports = router;
